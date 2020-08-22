@@ -71,8 +71,13 @@ int main()
 		else
 		{
 			cout << "Client Connected" << endl;
-			char message[256] = "Hello,Its my first network program ";
-			send(newConnection, message, sizeof(message), NULL);//send message to the client
+			string message = "Hello,Its my first network program ";
+
+			int messageLen = message.size();
+
+			send(newConnection, (char*)&messageLen, sizeof(int), NULL);//send info about message length
+
+			send(newConnection, message.c_str(), messageLen, NULL);//send message to the client
 			Connections[i] = newConnection;
 			Counter++;
 
@@ -90,15 +95,19 @@ int main()
 
 void ClientHandler(int index)
 {
-	char msg[256];
+	int msgLength = 0;
 
 	// receive and send a message
 	while (true)
 	{
+		//we accept package with size
+		recv(Connections[index], (char*)&msgLength, sizeof(int), NULL);
+		char* msg = new char[msgLength + 1];
+		msg[msgLength] = '\0';
 
 		// accepts the message sent by the client
-		recv(Connections[index],msg,sizeof(msg),NULL);
-
+		recv(Connections[index],msg, msgLength,NULL);
+		//cout << msg << endl;
 
 		// send a message to all clients, except for the one that sent it
 		for (int i = 0; i < 100; i++)
@@ -108,8 +117,14 @@ void ClientHandler(int index)
 				continue;
 			}
 			
-			send(Connections[i], msg, sizeof(msg), NULL);
+			////send info about message length
+			send(Connections[i], (char*)&msgLength, sizeof(int), NULL);
+
+			//send message
+			send(Connections[i], msg, msgLength, NULL);
 		}
+
+		delete[] msg;
 	}
 }
 
