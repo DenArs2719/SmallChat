@@ -8,7 +8,7 @@ using namespace std;
 SOCKET Connections[100]; //sockets array
 int Counter = 0;
 
-//функция которая принимает индекс соединения в сокет массиве
+//a function that takes the index of the connection in the socket array
 void ClientHandler(int index);
 
 int main()
@@ -24,44 +24,44 @@ int main()
 	}
 
 
-	SOCKADDR_IN addr; //хранит адресс
+	SOCKADDR_IN addr; //stores the address
 
 	int sizeOfAddr = sizeof(addr);
 
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1"); //хранит ip адрес
-	addr.sin_port = htons(1111); // порт индентификации программы поступающими данными
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1"); //stores ip address
+	addr.sin_port = htons(1111); // port of program identification by incoming data
 	addr.sin_family = AF_INET;
 
 
-	//создаем сокет и присваем результат функции сокет .
-	//AF_INET -семейство интренет протоколов
+	//create a socketand assign the result to the socket function
+	//AF_INET - Ethernet protocols(интернет протоколы)
 	//SOCK_STREAM - указывает на протокол устанавливающий соединение
 	SOCKET sListen = socket(AF_INET, SOCK_STREAM, NULL);
 	
 
 
-	//привязываем адрес сокету
+	//bind an address to a socket
 	// первый параметр -  предварительно созданный сокет
 	// второй - указатель на структуру SOCKADDR
 	// третий - размер стуктуры SOCKADDR
 	bind(sListen, (SOCKADDR*)&addr, sizeof(addr));
 	
 
-	//когда локальный адрес и порт привязаны к сокету ,приступаем  к прослушиванию порта ,для ожидания соединения со стороны клиента
-	//первый араметр - сокет
+	//when the local address and port are bound to the socket, we start listening on the port to wait for a connection from the client side
+	//первый параметр - сокет
 	//второй параметр - максимальное допустимое число запросов ожидающих обработки
 	listen(sListen, SOMAXCONN);
 	
 
 	SOCKET newConnection;
-	//удерживаем соедниенение с клиентом
+	//keep the connection with the client
 	//первый параметр - наш сокет
 	//второй параметр - указатель на структуру SOCKADDR
 	// третий - сслыка на размер стуктуры SOCKADDR
 
 	for (int i = 0; i < 100; i++)
 	{
-		//функция возвращает указатель на новый сокет,который можно использовать для общения с клиентом,если вернет ноль,то клиент не смог подключиться к серверу
+		//the function returns a pointer to a new socket, which can be used to communicate with the client, if it returns zero, the client could not connect to the server
 		newConnection = accept(sListen, (SOCKADDR*)&addr, &sizeOfAddr);
 
 		if (newConnection == 0)
@@ -76,11 +76,11 @@ int main()
 			Connections[i] = newConnection;
 			Counter++;
 
-			//создаем поток в котором будем отправлять сообщение
+			//create a stream in which we will send a message
 			//3 параметр - указатель на функцию 
 			//4 параметр - элемент в процедуре
-			//ошибка вернет 0
-			//успех - вернет Hadle созданного потока
+			//Error return  0
+			//success - will return the Hadle of the created stream
 			CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)ClientHandler,(LPVOID)(i),NULL,NULL);
 
 		}
@@ -92,13 +92,15 @@ void ClientHandler(int index)
 {
 	char msg[256];
 
-	//получение и отправление сообщения
+	// receive and send a message
 	while (true)
 	{
-		//принимает сообщение отправленное клиетом
+
+		// accepts the message sent by the client
 		recv(Connections[index],msg,sizeof(msg),NULL);
 
-		//отправляем сообщение всем клиентам,кроме того,который его отправил
+
+		// send a message to all clients, except for the one that sent it
 		for (int i = 0; i < 100; i++)
 		{
 			if (i == index)
