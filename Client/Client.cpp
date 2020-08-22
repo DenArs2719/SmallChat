@@ -3,6 +3,7 @@
 #include <iostream>
 #include <winsock2.h>
 #include <Ws2tcpip.h>
+#include <string>
 using namespace std;
 
 SOCKET Connection;
@@ -62,17 +63,21 @@ int main()
 	//create thread
 	CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)ClientHandler,NULL,NULL,NULL);
 
-	char msg[256];
+	string msg;
 
 
 	// read the characters written by the client
 	while (true)
 	{
-		cin.getline(msg,sizeof(msg));
+		getline(cin,msg);
 
+		int msgLength = msg.size();
 
-		// send a message
-		send(Connection, msg, sizeof(msg),NULL);
+		/// send the string to the server ,so that it knows her size
+		send(Connection, (char*)&msgLength, sizeof(int), NULL);
+
+		//send a message
+		send(Connection, msg.c_str(), msgLength,NULL);
 
 		//pause
 		Sleep(10);
@@ -83,15 +88,23 @@ int main()
 
 void ClientHandler()
 {
-	// store the passed string
-	char message[256];
+	//store the passed string
+
+	int msgLength = 0;
 
 	// accept the message and print it to the screen
 	while (true)
 	{
+		///take message from server with length
+		recv(Connection, (char*)&msgLength, sizeof(int), NULL);
+
+		char* message = new char[msgLength + 1];
+		message[msgLength] = '\0';
+
 		//take message from server
-		recv(Connection, message, sizeof(message),NULL);
+		recv(Connection, message, msgLength,NULL);
 		cout << message << endl;;
+		delete[] message;
 	}
 
 }
