@@ -102,6 +102,7 @@ void ClientHandler(int index)
 	{
 		//we accept package with size
 		recv(Connections[index], (char*)&msgLength, sizeof(int), NULL);
+
 		char* msg = new char[msgLength + 1];
 		msg[msgLength] = '\0';
 
